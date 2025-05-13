@@ -1,10 +1,9 @@
 package main
 
 import (
+	"learngo-pockets/logger/pocketlog"
 	"os"
 	"time"
-
-	"learngo-pockets/logger/pocketlog"
 )
 
 func main() {

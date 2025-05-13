@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"unicode/utf8"
 )
 
 type Logger struct {
 	threshold Level
 	output    io.Writer
+	maxLength uint
 }
 
 // New returns you a logger, ready to log at the required threshold.
@@ -18,6 +20,7 @@ func New(threshold Level, opts ...Option) *Logger {
 	logger := &Logger{
 		threshold: threshold,
 		output:    os.Stdout,
+		maxLength: 0,
 	}
 
 	for _, configFunc := range opts {
@@ -53,5 +56,17 @@ func (l *Logger) Logf(lvl Level, format string, args ...any) {
 
 func (l *Logger) logf(lvl Level, format string, args ...any) {
 	message := fmt.Sprintf(format, args...)
+	message = capString(message, l.maxLength)
 	_, _ = fmt.Fprintf(l.output, "%s %s\n", lvl, message)
+}
+
+func capString(s string, maxLength uint) string {
+	if maxLength == 0 || uint(utf8.RuneCountInString(s)) < maxLength {
+		return s
+	}
+
+	runes := []rune(s)
+	cappedRunes := runes[:maxLength]
+
+	return string(cappedRunes) + "[TRIMMED]"
 }

@@ -12,3 +12,11 @@ func WithOutput(output io.Writer) Option {
 		l.output = output
 	}
 }
+
+// WithMaxLength returns a configuration function that sets the maximum
+// length of the log messages.
+func WithMaxLength(maxLength uint) Option {
+	return func(l *Logger) {
+		l.maxLength = maxLength
+	}
+}
