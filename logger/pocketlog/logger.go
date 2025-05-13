@@ -1,6 +1,7 @@
 package pocketlog
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -55,9 +56,22 @@ func (l *Logger) Logf(lvl Level, format string, args ...any) {
 }
 
 func (l *Logger) logf(lvl Level, format string, args ...any) {
-	message := fmt.Sprintf(format, args...)
-	message = capString(message, l.maxLength)
-	_, _ = fmt.Fprintf(l.output, "%s %s\n", lvl, message)
+	contents := fmt.Sprintf(format, args...)
+	contents = capString(contents, l.maxLength)
+
+	msg := message{
+		Message: contents,
+		Level:   lvl.String(),
+	}
+
+	formattedMessage, err := json.Marshal(msg)
+	if err != nil {
+		_, _ = fmt.Fprintf(l.output, "unable to format message for %v\n", contents)
+		return
+	}
+
+	_, _ = fmt.Fprintln(l.output, string(formattedMessage))
+
 }
 
 func capString(s string, maxLength uint) string {
@@ -69,4 +83,9 @@ func capString(s string, maxLength uint) string {
 	cappedRunes := runes[:maxLength]
 
 	return string(cappedRunes) + "[TRIMMED]"
+}
+
+type message struct {
+	Level   string `json:"level"`
+	Message string `json:"message"`
 }

@@ -9,7 +9,7 @@ import (
 func ExampleLogger_Debugf() {
 	debugLogger := pocketlog.New(pocketlog.LevelDebug, pocketlog.WithOutput(os.Stdout))
 	debugLogger.Debugf("Hello, %s", "world")
-	//Output: [DEBUG] Hello, world
+	//Output: {"level":"[DEBUG]","message":"Hello, world"}
 
 }
 
@@ -20,29 +20,24 @@ const (
 )
 
 func TestLogger_DebugfInfofErrorf(t *testing.T) {
-	type testCase struct {
+	tt := map[string]struct {
 		level    pocketlog.Level
 		expected string
-	}
-
-	var (
-		testDebugMessage = "[DEBUG] " + debugMessage + "\n"
-		testInfoMessage  = "[INFO] " + infoMessage + "\n"
-		testErrorMessage = "[ERROR] " + errorMessage + "\n"
-	)
-
-	tt := map[string]testCase{
+	}{
 		"debug": {
-			level:    pocketlog.LevelDebug,
-			expected: testDebugMessage + testInfoMessage + testErrorMessage,
+			level: pocketlog.LevelDebug,
+			expected: `{"level":"[DEBUG]","message":"` + debugMessage + "\"}\n" +
+				`{"level":"[INFO]","message":"` + infoMessage + "\"}\n" +
+				`{"level":"[ERROR]","message":"` + errorMessage + "\"}\n",
 		},
 		"info": {
-			level:    pocketlog.LevelInfo,
-			expected: testInfoMessage + testErrorMessage,
+			level: pocketlog.LevelInfo,
+			expected: `{"level":"[INFO]","message":"` + infoMessage + "\"}\n" +
+				`{"level":"[ERROR]","message":"` + errorMessage + "\"}\n",
 		},
 		"error": {
 			level:    pocketlog.LevelError,
-			expected: testErrorMessage,
+			expected: `{"level":"[ERROR]","message":"` + errorMessage + "\"}\n",
 		},
 	}
 
@@ -50,11 +45,11 @@ func TestLogger_DebugfInfofErrorf(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			tw := &testWriter{}
 
-			testLogger := pocketlog.New(tc.level, pocketlog.WithOutput(tw))
+			testedLogger := pocketlog.New(tc.level, pocketlog.WithOutput(tw))
 
-			testLogger.Debugf(debugMessage)
-			testLogger.Infof(infoMessage)
-			testLogger.Errorf(errorMessage)
+			testedLogger.Debugf(debugMessage)
+			testedLogger.Infof(infoMessage)
+			testedLogger.Errorf(errorMessage)
 
 			if tw.contents != tc.expected {
 				t.Errorf("invalid contents, expected %q, got %q", tc.expected, tw.contents)
