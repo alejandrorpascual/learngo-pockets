@@ -6,6 +6,13 @@ import (
 	"testing"
 )
 
+func ExampleLogger_Debugf() {
+	debugLogger := pocketlog.New(pocketlog.LevelDebug, pocketlog.WithOutput(os.Stdout))
+	debugLogger.Debugf("Hello, %s", "world")
+	//Output: [DEBUG] Hello, world
+
+}
+
 const (
 	debugMessage = "Why write I still all one, ever the same,"
 	infoMessage  = "And keep invention in a noted weed,"
@@ -18,21 +25,24 @@ func TestLogger_DebugfInfofErrorf(t *testing.T) {
 		expected string
 	}
 
+	var (
+		testDebugMessage = "[DEBUG] " + debugMessage + "\n"
+		testInfoMessage  = "[INFO] " + infoMessage + "\n"
+		testErrorMessage = "[ERROR] " + errorMessage + "\n"
+	)
+
 	tt := map[string]testCase{
 		"debug": {
-			level: pocketlog.LevelDebug,
-			expected: debugMessage + "\n" +
-				infoMessage + "\n" +
-				errorMessage + "\n",
+			level:    pocketlog.LevelDebug,
+			expected: testDebugMessage + testInfoMessage + testErrorMessage,
 		},
 		"info": {
-			level: pocketlog.LevelInfo,
-			expected: infoMessage + "\n" +
-				errorMessage + "\n",
+			level:    pocketlog.LevelInfo,
+			expected: testInfoMessage + testErrorMessage,
 		},
 		"error": {
 			level:    pocketlog.LevelError,
-			expected: errorMessage + "\n",
+			expected: testErrorMessage,
 		},
 	}
 
@@ -51,13 +61,6 @@ func TestLogger_DebugfInfofErrorf(t *testing.T) {
 			}
 		})
 	}
-}
-
-func ExampleLogger_Debugf() {
-	debugLogger := pocketlog.New(pocketlog.LevelDebug, pocketlog.WithOutput(os.Stdout))
-	debugLogger.Debugf("Hello, %s", "world")
-	//Output: Hello, world
-
 }
 
 // testWriter is a struct that implements io.Writer.
