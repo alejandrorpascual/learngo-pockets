@@ -37,6 +37,9 @@ func (g *Game) Play() {
 			fmt.Printf("🎉 You won! You found it in %d guess(es)! The word was: %s.\n", currentAttempt, string(g.solution))
 			return
 		}
+
+		fb := computeFeedback(guess, g.solution)
+		fmt.Println(fb)
 	}
 
 	fmt.Printf("😞 You've lost! The solution was: %s.\n", string(g.solution))
@@ -79,4 +82,50 @@ func (g *Game) validateGuess(guess []rune) error {
 	}
 
 	return nil
+}
+
+func computeFeedback(guess, solution []rune) feedback {
+	result := make(feedback, len(guess))
+	used := make([]bool, len(solution))
+
+	if len(guess) != len(solution) {
+		_, _ = fmt.Fprintf(os.Stderr, "Internal error! Guess and solution"+
+			" have different lengths: %d vs %d", len(guess), len(solution))
+		return result
+	}
+
+	for i, char := range guess {
+		if char == solution[i] {
+			result[i] = correctPosition
+			used[i] = true
+			continue
+		}
+	}
+
+	for i, char := range guess {
+		if result[i] != absentCharacter {
+			// char has already been marked, ignore it.
+			continue
+		}
+
+		for j, targetChar := range solution {
+			if used[j] {
+				// The letter of the solution is already assigned to a
+				// letter of the guess.
+				// Skip to the next letter of the solution
+				continue
+			}
+
+			if char == targetChar {
+				result[i] = wrongPosition
+				used[j] = true
+				// skip to the next letter of the guess.
+				break
+			}
+
+		}
+
+	}
+
+	return result
 }
