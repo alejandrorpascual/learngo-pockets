@@ -5,19 +5,23 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"slices"
+	"strings"
 )
-
-const solutionLength = 5
 
 // Game holds all the information we need to play a game of gordle.
 type Game struct {
-	reader *bufio.Reader
+	reader      *bufio.Reader
+	solution    []rune
+	maxAttempts int
 }
 
 // New returns a game, which can be used to Play!
-func New(playerInput io.Reader) *Game {
+func New(playerInput io.Reader, solution string, maxAttempts int) *Game {
 	g := &Game{
-		reader: bufio.NewReader(playerInput),
+		reader:      bufio.NewReader(playerInput),
+		solution:    splitToUppercaseCharacters(solution),
+		maxAttempts: maxAttempts,
 	}
 
 	return g
@@ -26,14 +30,21 @@ func New(playerInput io.Reader) *Game {
 func (g *Game) Play() {
 	fmt.Println("Welcome to Gordle!")
 
-	guess := g.ask()
+	for currentAttempt := 1; currentAttempt <= g.maxAttempts; currentAttempt++ {
+		guess := g.ask()
 
-	fmt.Printf("Your guess is: %s\n", string(guess))
+		if slices.Equal(guess, g.solution) {
+			fmt.Printf("🎉 You won! You found it in %d guess(es)! The word was: %s.\n", currentAttempt, string(g.solution))
+			return
+		}
+	}
+
+	fmt.Printf("😞 You've lost! The solution was: %s.\n", string(g.solution))
 }
 
 // ask reads input until a valid suggestion is made (and returned).
 func (g *Game) ask() []rune {
-	fmt.Printf("Enter a %d-character guess:\n", solutionLength)
+	fmt.Printf("Enter a %d-character guess:\n", len(g.solution))
 
 	for {
 		playerAnswer, _, err := g.reader.ReadLine()
@@ -42,7 +53,7 @@ func (g *Game) ask() []rune {
 			continue
 		}
 
-		guess := []rune(string(playerAnswer))
+		guess := splitToUppercaseCharacters(string(playerAnswer))
 
 		err = g.validateGuess(guess)
 		if err != nil {
@@ -53,14 +64,18 @@ func (g *Game) ask() []rune {
 	}
 }
 
+func splitToUppercaseCharacters(input string) []rune {
+	return []rune(strings.ToUpper(input))
+}
+
 // errInvalidWordLength is returned when the guess has the wrong number of
 // characters.
 var errInvalidWordLength = fmt.Errorf("invalid guess, word doesn't  have the same number of characters as the solution")
 
 // validateGuess ensures the guess is valid enough.
 func (g *Game) validateGuess(guess []rune) error {
-	if len(guess) != solutionLength {
-		return fmt.Errorf("expected %d, got %d, %w", solutionLength, len(guess), errInvalidWordLength)
+	if len(guess) != len(g.solution) {
+		return fmt.Errorf("expected %d, got %d, %w", len(g.solution), len(guess), errInvalidWordLength)
 	}
 
 	return nil

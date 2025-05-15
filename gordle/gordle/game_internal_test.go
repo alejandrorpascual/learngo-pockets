@@ -32,7 +32,7 @@ func TestGameAsk(t *testing.T) {
 
 	for name, tc := range tt {
 		t.Run(name, func(t *testing.T) {
-			g := New(strings.NewReader(tc.input))
+			g := New(strings.NewReader(tc.input), string(tc.want), 0)
 
 			got := g.ask()
 			if !slices.Equal(got, tc.want) {
@@ -67,11 +67,32 @@ func TestGameValidateGuess(t *testing.T) {
 
 	for name, tc := range tt {
 		t.Run(name, func(t *testing.T) {
-			g := New(nil)
+			g := New(nil, "SLICE", 0)
 			got := g.validateGuess(tc.word)
 
 			if !errors.Is(got, tc.expected) {
 				t.Errorf("%c, expected %q, got %q", tc.word, tc.expected, got)
+			}
+		})
+	}
+}
+
+func TestSplitToUppercaseCharacters(t *testing.T) {
+	tt := map[string]struct {
+		input string
+		want  []rune
+	}{
+		"lowercase": {
+			input: "pocket",
+			want:  []rune("POCKET"),
+		},
+	}
+
+	for name, tc := range tt {
+		t.Run(name, func(t *testing.T) {
+			got := splitToUppercaseCharacters(tc.input)
+			if !slices.Equal(got, tc.want) {
+				t.Errorf("expected %v, got %v", tc.want, got)
 			}
 		})
 	}
