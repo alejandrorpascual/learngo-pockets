@@ -13,10 +13,11 @@ func main() {
 		return
 	}
 
-	g, err := gordle.New(os.Stdin, corpus, 4)
+	g, err := gordle.New(corpus, gordle.WithReader(os.Stdin), gordle.WithMaxAttempts(4))
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "unable to start game: %s", err)
 		return
 	}
 	g.Play()
+
 }

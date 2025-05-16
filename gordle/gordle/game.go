@@ -3,7 +3,6 @@ package gordle
 import (
 	"bufio"
 	"fmt"
-	"io"
 	"os"
 	"slices"
 	"strings"
@@ -18,17 +17,22 @@ type Game struct {
 }
 
 // New returns a game, which can be used to Play!
-func New(playerInput io.Reader, corpus []string, maxAttempts int) (*Game, error) {
+func New(corpus []string, configs ...ConfigFunc) (*Game, error) {
 	if len(corpus) == 0 {
 		return nil, ErrCorpusIsEmpty
 	}
 
-	solution := pickWord(corpus)
-
 	g := &Game{
-		reader:      bufio.NewReader(playerInput),
-		solution:    splitToUppercaseCharacters(solution),
-		maxAttempts: maxAttempts,
+		reader:      bufio.NewReader(os.Stdin),
+		solution:    splitToUppercaseCharacters(pickWord(corpus)),
+		maxAttempts: -1,
+	}
+
+	for _, cf := range configs {
+		err := cf(g)
+		if err != nil {
+			return nil, fmt.Errorf("unable to apply config func: %w", err)
+		}
 	}
 
 	return g, nil
