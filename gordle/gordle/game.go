@@ -12,19 +12,26 @@ import (
 // Game holds all the information we need to play a game of gordle.
 type Game struct {
 	reader      *bufio.Reader
+	corpus      []string
 	solution    []rune
 	maxAttempts int
 }
 
 // New returns a game, which can be used to Play!
-func New(playerInput io.Reader, solution string, maxAttempts int) *Game {
+func New(playerInput io.Reader, corpus []string, maxAttempts int) (*Game, error) {
+	if len(corpus) == 0 {
+		return nil, ErrCorpusIsEmpty
+	}
+
+	solution := pickWord(corpus)
+
 	g := &Game{
 		reader:      bufio.NewReader(playerInput),
 		solution:    splitToUppercaseCharacters(solution),
 		maxAttempts: maxAttempts,
 	}
 
-	return g
+	return g, nil
 }
 
 func (g *Game) Play() {
