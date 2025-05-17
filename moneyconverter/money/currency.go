@@ -6,8 +6,12 @@ type Currency struct {
 	precision byte
 }
 
+// ErrInvalidCurrencyCode is returned when the currency to parse is not a
+// standard 3-letter code.
 const ErrInvalidCurrencyCode = Error("invalid currency code")
 
+// ParseCurrency returns the currency associated to a name and may return
+// ErrInvalidCurrencyCode
 func ParseCurrency(code string) (Currency, error) {
 	if len(code) != 3 {
 		return Currency{}, ErrInvalidCurrencyCode
