@@ -22,3 +22,14 @@ func NewAmount(qnt Decimal, curr Currency) (Amount, error) {
 	return Amount{quantity: qnt, currency: curr}, nil
 
 }
+
+func (a Amount) validate() error {
+	switch {
+	case a.quantity.subunits > maxDecimal:
+		return ErrTooLarge
+	case a.quantity.precision > a.currency.precision:
+		return ErrTooPrecise
+	}
+
+	return nil
+}
