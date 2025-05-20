@@ -12,14 +12,16 @@ const (
 )
 
 // NewAmount return an amount of money
-func NewAmount(qnt Decimal, curr Currency) (Amount, error) {
-	if qnt.precision > curr.precision {
+func NewAmount(quantity Decimal, currency Currency) (Amount, error) {
+	switch {
+	case quantity.precision > currency.precision:
 		return Amount{}, ErrTooPrecise
+	case quantity.precision < currency.precision:
+		quantity.subunits *= pow10(currency.precision - quantity.precision)
+		quantity.precision = currency.precision
 	}
 
-	qnt.precision = curr.precision
-
-	return Amount{quantity: qnt, currency: curr}, nil
+	return Amount{quantity: quantity, currency: currency}, nil
 
 }
 
@@ -32,4 +34,8 @@ func (a Amount) validate() error {
 	}
 
 	return nil
+}
+
+func (a Amount) String() string {
+	return a.quantity.String() + " " + a.currency.code
 }
