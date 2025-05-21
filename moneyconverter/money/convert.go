@@ -1,15 +1,26 @@
 package money
 
-import "math"
+import (
+	"fmt"
+	"math"
+)
 
 // Convert applies the change rate to convert an amount to target currency.
-func Convert(amount Amount, to Currency) (Amount, error) {
-	rate := ExchangeRate{2, 0}
+func Convert(amount Amount, to Currency, rates ratesFetcher) (Amount, error) {
+	rate, err := rates.FetchExchangeRate(amount.currency, to)
+	if err != nil {
+		return Amount{}, fmt.Errorf("cannot get change rate: %w", err)
+	}
+
 	converedtValue := applyExchangeRate(amount, to, rate)
 	if err := converedtValue.validate(); err != nil {
 		return Amount{}, err
 	}
 	return converedtValue, nil
+}
+
+type ratesFetcher interface {
+	FetchExchangeRate(source, target Currency) (ExchangeRate, error)
 }
 
 // ExchangeRate represents a rate to convert from one currency to another
