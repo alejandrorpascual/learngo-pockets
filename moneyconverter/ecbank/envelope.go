@@ -32,6 +32,7 @@ func (e envelope) exchangeRates() map[string]float64 {
 
 func (e envelope) exchangeRate(source, target string) (money.ExchangeRate, error) {
 	if source == target {
+		// No change rate for same source and target currencies.
 		one, err := money.ParseDecimal("1")
 		if err != nil {
 			return money.ExchangeRate{}, fmt.Errorf("unable to create a rate of value 1: %w", err)
@@ -39,6 +40,7 @@ func (e envelope) exchangeRate(source, target string) (money.ExchangeRate, error
 		return money.ExchangeRate(one), nil
 	}
 
+	// rates stores the rates when Envelope is parsed.
 	rates := e.exchangeRates()
 
 	sourceFactor, sourceFound := rates[source]
@@ -48,15 +50,14 @@ func (e envelope) exchangeRate(source, target string) (money.ExchangeRate, error
 
 	targetFactor, targetFound := rates[target]
 	if !targetFound {
-		return money.ExchangeRate{}, fmt.Errorf("failed to find the target currency %s", target)
+		return money.ExchangeRate{}, fmt.Errorf("failed to find target currency %s", target)
 	}
 
-	// Use a precision of 10 digits after the decimal separator.
-	// This should be enough, as most currencies only use 5 digits
 	rate, err := money.ParseDecimal(fmt.Sprintf("%.10f", targetFactor/sourceFactor))
 	if err != nil {
 		return money.ExchangeRate{}, fmt.Errorf("unable to parse exchange rate from %s to %s: %w", source, target, err)
 	}
+
 	return money.ExchangeRate(rate), nil
 }
 

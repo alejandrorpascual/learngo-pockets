@@ -9,18 +9,17 @@ import (
 )
 
 func TestUnmarshalXML(t *testing.T) {
-	message := `<?xml version="1.0" encoding="UTF-8"?>
-<gesmes:Envelope xmlns:gesmes="http://www.gesmes.org/xml/2002-08-01" xmlns="http://www.ecb.int/vocabulary/2002-08-01/eurofxref">
+	message := `<gesmes:Envelope xmlns:gesmes="http://www.gesmes.org/xml/2002-08-01" xmlns="http://www.ecb.int/vocabulary/2002-08-01/eurofxref">
 	<gesmes:subject>Reference rates</gesmes:subject>
 	<gesmes:Sender>
 		<gesmes:name>European Central Bank</gesmes:name>
 	</gesmes:Sender>
 	<Cube>
-		<Cube time='2025-05-21'>
-			<Cube currency='JPY' rate='162.76'/>
-			<Cube currency='TRY' rate='43.9528'/>
-			<Cube currency='KRW' rate='1556.99'/>
-			<Cube currency='NZD' rate='1.9067'/>
+		<Cube time="2022-11-25">
+			<Cube currency="JPY" rate="144.62"/>
+			<Cube currency="TRY" rate="19.3333"/>
+			<Cube currency="KRW" rate="1383.20"/>
+			<Cube currency="NZD" rate="1.6651"/>
 		</Cube>
 	</Cube>
 </gesmes:Envelope>`
@@ -28,10 +27,22 @@ func TestUnmarshalXML(t *testing.T) {
 	var got envelope
 	want := envelope{
 		Rates: []currencyRate{
-			{Currency: "JPY", Rate: 162.76},
-			{Currency: "TRY", Rate: 43.9528},
-			{Currency: "KRW", Rate: 1556.99},
-			{Currency: "NZD", Rate: 1.9067},
+			{
+				Currency: "JPY",
+				Rate:     144.62,
+			},
+			{
+				Currency: "TRY",
+				Rate:     19.3333,
+			},
+			{
+				Currency: "KRW",
+				Rate:     1383.20,
+			},
+			{
+				Currency: "NZD",
+				Rate:     1.6651,
+			},
 		},
 	}
 

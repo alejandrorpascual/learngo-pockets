@@ -34,6 +34,7 @@ const maxDecimal = 1e12
 // and that the separator is '.' (full stop character).
 func ParseDecimal(value string) (Decimal, error) {
 	intPart, fracPart, _ := strings.Cut(value, ".")
+
 	subunits, err := strconv.ParseInt(intPart+fracPart, 10, 64)
 	if err != nil {
 		return Decimal{}, fmt.Errorf("%w: %s", ErrInvalidDecimal, err.Error())
@@ -44,8 +45,9 @@ func ParseDecimal(value string) (Decimal, error) {
 	}
 
 	precision := byte(len(fracPart))
-
 	dec := Decimal{subunits: subunits, precision: precision}
+
+	// Let's clean the representation a bit. Remove trailing zeroes.
 	dec.simplify()
 
 	return dec, nil

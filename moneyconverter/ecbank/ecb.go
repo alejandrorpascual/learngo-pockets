@@ -1,18 +1,17 @@
 package ecbank
 
 import (
+	"errors"
 	"fmt"
 	"learngo-pockets/moneyconverter/money"
 	"net/http"
+	"net/url"
+	"time"
 )
-
-// Client can call the bank to retrieve exchange rates.
-type Client struct {
-	url string
-}
 
 const (
 	ErrCallingServer      = ecbankError("error calling server")
+	ErrTimeout            = ecbankError("timed out when waiting for response")
 	ErrClientSide         = ecbankError("client side error when contacting ECB")
 	ErrChangeRateNotFound = ecbankError("couldn't find the exchange rate")
 	ErrServerSide         = ecbankError("server side error when contacting ECB")
@@ -20,16 +19,27 @@ const (
 	ErrUnknownStatusCode  = ecbankError("unknown status code contacting ECB")
 )
 
+// Client can call the bank to retrieve exchange rates.
+type Client struct {
+	client *http.Client
+}
+
+func NewClient(timeout time.Duration) Client {
+	return Client{
+		client: &http.Client{Timeout: timeout},
+	}
+}
+
 // FetchExchangeRate fetches the ExchangeRate for the day and returns it.
 func (c Client) FetchExchangeRate(source, target money.Currency) (money.ExchangeRate, error) {
-	const euroxrefURL = "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml"
+	const euroxrefURL = "http://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml"
 
-	if c.url == "" {
-		c.url = euroxrefURL
-	}
-
-	resp, err := http.Get(c.url)
+	resp, err := c.client.Get(euroxrefURL)
 	if err != nil {
+		var urlErr *url.Error
+		if ok := errors.As(err, &urlErr); ok && urlErr.Timeout() {
+			return money.ExchangeRate{}, fmt.Errorf("%w: %s", ErrTimeout, err.Error())
+		}
 		return money.ExchangeRate{}, fmt.Errorf("%w: %s", ErrServerSide, err.Error())
 	}
 
@@ -37,7 +47,6 @@ func (c Client) FetchExchangeRate(source, target money.Currency) (money.Exchange
 
 	if err = checkStatusCode(resp.StatusCode); err != nil {
 		return money.ExchangeRate{}, err
-
 	}
 
 	rate, err := readRateFromResponse(source.Code(), target.Code(), resp.Body)
