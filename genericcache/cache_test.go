@@ -1,7 +1,9 @@
 package cache_test
 
 import (
+	"fmt"
 	cache "learngo-pockets/genericcache"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -56,4 +58,34 @@ func TestCache(t *testing.T) {
 
 	assert.True(t, ok)
 	assert.Equal(t, v, "drei")
+}
+
+func TestCache_Parallel_goroutines(t *testing.T) {
+	c := cache.New[int, string]()
+	const parallelTasks = 10
+	wg := sync.WaitGroup{}
+	wg.Add(parallelTasks)
+
+	for i := range parallelTasks {
+		go func(j int) {
+			defer wg.Done()
+			c.Upsert(4, fmt.Sprint(j))
+		}(i)
+	}
+
+	wg.Wait()
+}
+
+func TestCache_Parallel(t *testing.T) {
+	c := cache.New[int, string]()
+
+	t.Run("write six", func(t *testing.T) {
+		t.Parallel()
+		c.Upsert(6, "six")
+	})
+
+	t.Run("write kuus", func(t *testing.T) {
+		t.Parallel()
+		c.Upsert(6, "kuus")
+	})
 }
