@@ -1,3 +1,3 @@
 ###
 
-GET http://localhost:8081 HTTP/1.1
+POST http://localhost:8081/games HTTP/1.1
