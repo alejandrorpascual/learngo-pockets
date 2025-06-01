@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"learngo-pockets/httpgordle/internal/api"
+	"learngo-pockets/httpgordle/internal/handlers/getstatus"
+	"learngo-pockets/httpgordle/internal/handlers/guess"
 	"learngo-pockets/httpgordle/internal/handlers/newgame"
 	"net/http"
 )
@@ -9,6 +11,8 @@ import (
 func Mux() *http.ServeMux {
 	mux := http.NewServeMux()
 	mux.HandleFunc(http.MethodPost+" "+api.NewGameRoute, newgame.Handle)
+	mux.HandleFunc(http.MethodGet+" "+api.GetStatusRoute, getstatus.Handle)
+	mux.HandleFunc(http.MethodPut+" "+api.GuessRoute, guess.Handle)
 
 	return mux
 }
