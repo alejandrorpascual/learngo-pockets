@@ -1,13 +1,19 @@
 package newgame
 
-import "net/http"
+import (
+	"encoding/json"
+	"learngo-pockets/httpgordle/internal/api"
+	"log"
+	"net/http"
+)
 
 func Handle(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
-
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	_, _ = w.Write([]byte("Creating a new game"))
+
+	apiGame := api.GameResponse{}
+	err := json.NewEncoder(w).Encode(apiGame)
+	if err != nil {
+		log.Printf("faile to write response: %s", err)
+	}
 }
