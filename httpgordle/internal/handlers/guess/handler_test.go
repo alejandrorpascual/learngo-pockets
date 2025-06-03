@@ -20,7 +20,8 @@ func TestHandle(t *testing.T) {
 
 	recorder := httptest.NewRecorder()
 
-	Handle(recorder, req)
+	handleFunc := Handler(nil)
+	handleFunc(recorder, req)
 
 	assert.Equal(t, http.StatusOK, recorder.Code)
 	assert.Equal(t, "application/json", recorder.Header().Get("Content-Type"))

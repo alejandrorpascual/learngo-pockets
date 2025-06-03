@@ -8,27 +8,34 @@ import (
 	"net/http"
 )
 
-func Handle(w http.ResponseWriter, r *http.Request) {
-	id := r.PathValue(api.GameID)
-	if id == "" {
-		http.Error(w, "missing the id of the game", http.StatusBadRequest)
-	}
+type Guesser interface {
+	Find(id session.GameID) (session.Game, error)
+	Update(game session.Game) error
+}
 
-	guessR := api.GuessRequest{}
-	err := json.NewDecoder(r.Body).Decode(&guessR)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
+func Handler(guesser Guesser) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id := r.PathValue(api.GameID)
+		if id == "" {
+			http.Error(w, "missing the id of the game", http.StatusBadRequest)
+		}
 
-	game := guess(id, guessR)
+		guessR := api.GuessRequest{}
+		err := json.NewDecoder(r.Body).Decode(&guessR)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
 
-	apiGame := api.ToGameResponse(game)
+		game := guess(id, guessR)
 
-	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(apiGame)
-	if err != nil {
-		log.Printf("failed to write response: %s", err)
+		apiGame := api.ToGameResponse(game)
+
+		w.Header().Set("Content-Type", "application/json")
+		err = json.NewEncoder(w).Encode(apiGame)
+		if err != nil {
+			log.Printf("failed to write response: %s", err)
+		}
 	}
 }
 
