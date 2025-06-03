@@ -3,9 +3,11 @@ package repository
 import (
 	"fmt"
 	"learngo-pockets/httpgordle/internal/session"
+	"sync"
 )
 
 type GameRepository struct {
+	mutex   sync.Mutex
 	storage map[session.GameID]session.Game
 }
 
@@ -16,6 +18,9 @@ func New() *GameRepository {
 }
 
 func (gr *GameRepository) Add(game session.Game) error {
+	gr.mutex.Lock()
+	defer gr.mutex.Unlock()
+
 	_, ok := gr.storage[game.ID]
 	if ok {
 		return fmt.Errorf("%w (%s)", ErrConflictingID, game.ID)
@@ -27,6 +32,9 @@ func (gr *GameRepository) Add(game session.Game) error {
 }
 
 func (gr *GameRepository) Find(id session.GameID) (session.Game, error) {
+	gr.mutex.Lock()
+	defer gr.mutex.Unlock()
+
 	game, ok := gr.storage[id]
 	if !ok {
 		return session.Game{}, fmt.Errorf("can't find game %s: %w", id, ErrNotFound)
@@ -36,6 +44,9 @@ func (gr *GameRepository) Find(id session.GameID) (session.Game, error) {
 }
 
 func (gr *GameRepository) Update(game session.Game) error {
+	gr.mutex.Lock()
+	defer gr.mutex.Unlock()
+
 	_, ok := gr.storage[game.ID]
 	if !ok {
 		return fmt.Errorf("can't find game %s: %w", game.ID, ErrNotFound)
