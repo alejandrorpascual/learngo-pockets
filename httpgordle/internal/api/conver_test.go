@@ -2,6 +2,7 @@ package api_test
 
 import (
 	"learngo-pockets/httpgordle/internal/api"
+	"learngo-pockets/httpgordle/internal/gordle"
 	"learngo-pockets/httpgordle/internal/session"
 	"testing"
 
@@ -16,7 +17,11 @@ func TestToGameResponse(t *testing.T) {
 	}{
 		"nominal": {
 			game: session.Game{
-				ID:           session.GameID(id),
+				ID: session.GameID(id),
+				Gordle: func() gordle.Game {
+					g, _ := gordle.New("HELLO")
+					return *g
+				}(),
 				AttemptsLeft: 4,
 				Guesses: []session.Guess{
 					{
@@ -33,8 +38,9 @@ func TestToGameResponse(t *testing.T) {
 					Word:     "FAUNE",
 					Feedback: "⬜️🟡⬜️⬜️⬜️",
 				}},
-				Solution: "",
-				Status:   session.StatusPlaying,
+				Solution:   "",
+				WordLength: 5,
+				Status:     session.StatusPlaying,
 			},
 		},
 	}

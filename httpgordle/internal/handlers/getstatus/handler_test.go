@@ -12,27 +12,26 @@ import (
 )
 
 func TestHandle(t *testing.T) {
-	req, err := http.NewRequest(http.MethodGet, "/games", nil)
+	handle := Handler(gameFinderStub{session.Game{ID: "123456"}, nil})
+	req, err := http.NewRequest(http.MethodGet, "/games/", nil)
 	require.NoError(t, err)
 
 	req.SetPathValue(api.GameID, "123456")
 
 	recorder := httptest.NewRecorder()
-	handleFunc := Handler(gameGuesserStub{})
-	handleFunc(recorder, req)
+
+	handle(recorder, req)
 
 	assert.Equal(t, http.StatusOK, recorder.Code)
 	assert.Equal(t, "application/json", recorder.Header().Get("Content-Type"))
-	assert.JSONEq(t, `{"id":"123456","attempts_left":0,"guesses":[],"word_length":0,"solution":"","status":""}`, recorder.Body.String())
+	assert.JSONEq(t, `{"id":"123456","attempts_left":0,"guesses":[],"word_length":0,"status":""}`, recorder.Body.String())
 }
 
-type gameGuesserStub struct {
-	err error
+type gameFinderStub struct {
+	game session.Game
+	err  error
 }
 
-func (g gameGuesserStub) Find(id session.GameID) (session.Game, error) {
-	return session.Game{ID: id}, g.err
-}
-func (g gameGuesserStub) Update(session.Game) error {
-	return g.err
+func (g gameFinderStub) Find(_ session.GameID) (session.Game, error) {
+	return g.game, g.err
 }

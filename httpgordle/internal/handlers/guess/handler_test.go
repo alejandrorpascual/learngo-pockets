@@ -2,6 +2,8 @@ package guess
 
 import (
 	"learngo-pockets/httpgordle/internal/api"
+	"learngo-pockets/httpgordle/internal/gordle"
+	"learngo-pockets/httpgordle/internal/session"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -12,6 +14,14 @@ import (
 )
 
 func TestHandle(t *testing.T) {
+	game, _ := gordle.New("pocket")
+	handle := Handler(successGameGuesserStub{session.Game{
+		ID:           "123456",
+		Gordle:       *game,
+		AttemptsLeft: 5,
+		Status:       session.StatusPlaying,
+	}})
+
 	body := strings.NewReader(`{"guess": "pocket"}`)
 	req, err := http.NewRequest(http.MethodPut, "/games/", body)
 	require.NoError(t, err)
@@ -20,10 +30,21 @@ func TestHandle(t *testing.T) {
 
 	recorder := httptest.NewRecorder()
 
-	handleFunc := Handler(nil)
-	handleFunc(recorder, req)
+	handle(recorder, req)
 
 	assert.Equal(t, http.StatusOK, recorder.Code)
 	assert.Equal(t, "application/json", recorder.Header().Get("Content-Type"))
-	assert.JSONEq(t, `{"id":"123456","attempts_left":0,"guesses":[],"word_length":0,"solution":"","status":""}`, recorder.Body.String())
+	assert.JSONEq(t, `{"id":"123456","attempts_left":4,"guesses":[{"word":"pocket","feedback":"++++++"}],"word_length":6,"status":"Won"}`, recorder.Body.String())
+}
+
+type successGameGuesserStub struct {
+	game session.Game
+}
+
+func (g successGameGuesserStub) Find(id session.GameID) (session.Game, error) {
+	return g.game, nil
+}
+
+func (g successGameGuesserStub) Update(game session.Game) error {
+	return nil
 }

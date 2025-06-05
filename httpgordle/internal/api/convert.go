@@ -4,13 +4,16 @@ import (
 	"learngo-pockets/httpgordle/internal/session"
 )
 
+// ToGameResponse converts a domain.Game into an api.Response.
 func ToGameResponse(g session.Game) GameResponse {
+	solution := g.Gordle.ShowAnswer()
+
 	apiGame := GameResponse{
 		ID:           string(g.ID),
 		AttemptsLeft: g.AttemptsLeft,
 		Guesses:      make([]Guess, len(g.Guesses)),
 		Status:       string(g.Status),
-		// TODO: WordLength
+		WordLength:   byte(len(solution)),
 	}
 
 	for index := range len(g.Guesses) {
@@ -19,7 +22,7 @@ func ToGameResponse(g session.Game) GameResponse {
 	}
 
 	if g.AttemptsLeft == 0 {
-		apiGame.Solution = "" // TODO: solution
+		apiGame.Solution = solution
 	}
 
 	return apiGame

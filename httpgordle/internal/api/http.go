@@ -27,7 +27,7 @@ type GameResponse struct {
 	AttemptsLeft byte    `json:"attempts_left"`
 	Guesses      []Guess `json:"guesses"`
 	WordLength   byte    `json:"word_length"`
-	Solution     string  `json:"solution"`
+	Solution     string  `json:"solution,omitempty"`
 	Status       string  `json:"status"`
 }
 
